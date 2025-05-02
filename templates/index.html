@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>EPUB Arabic to Text + Prompt</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .output-container {
+            margin-top: 30px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        
+        /* Styling untuk konten markdown */
+        #output-content {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        
+        #output-content ul {
+            padding-left: 20px;
+        }
+        
+        #output-content li {
+            margin-bottom: 5px;
+        }
+        
+        #output-content strong, 
+        #output-content b {
+            font-weight: bold;
+        }
+        
+        #output-content h1, 
+        #output-content h2, 
+        #output-content h3, 
+        #output-content h4 {
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        #output-content p {
+            margin-bottom: 16px;
+        }
+        .btn {
+            padding: 8px 16px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        .loading {
+            display: none;
+            margin-top: 20px;
+        }
+        #file-info {
+            background-color: #e8f4ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+        .alert {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .alert-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffecb5;
+            color: #856404;
+        }
+        .alert-info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 20px;
+            background-color: #4CAF50;
+            border-radius: 5px;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload EPUB & Masukkan Prompt</h1>
+        
+        <div id="file-upload-container">
+            <div class="form-group">
+                <label>Upload File EPUB:</label><br>
+                <input type="file" id="epub-file" accept=".epub" required><br>
+                <div id="file-info"></div>
+            </div>
+            <button type="button" id="reset-btn" class="btn" style="display:none;">Reset File</button>
+        </div>
+        
+        <div class="form-group">
+            <label>Masukkan Prompt Anda:</label><br>
+            <textarea id="prompt-input" rows="4" cols="50" placeholder="Contoh: Terjemahkan teks Arab ini ke Bahasa Indonesia yang natural, rapi, dan formal." required></textarea>
+        </div>
+        
+        <button id="process-btn" class="btn">Proses</button>
+        
+        <div class="loading" id="loading-indicator">
+            <div>Sedang memproses...</div>
+            <div class="progress-container" id="progress-container">
+                <div class="progress-bar" id="progress-bar">0%</div>
+            </div>
+        </div>
+        
+        <div id="text-size-info" class="alert alert-info" style="display:none;"></div>
+        <div id="warning-message" class="alert alert-warning" style="display:none;"></div>
+        
+        <div class="output-container" id="output-container" style="display:none;">
+            <h2>Output:</h2>
+            <div id="output-content"></div>
+        </div>
+        
+        <!-- Tambahkan library Showdown.js untuk konversi markdown -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+    </div>
+
+    <script>
+        let selectedFile = null;
+        
+        // File Input Handler
+        document.getElementById('epub-file').addEventListener('change', (event) => {
+            const fileInput = event.target;
+            const fileInfo = document.getElementById('file-info');
+            
+            if (fileInput.files.length > 0) {
+                selectedFile = fileInput.files[0];
+                const fileSizeMB = (selectedFile.size / (1024 * 1024)).toFixed(2);
+                fileInfo.innerHTML = `File dipilih: <strong>${selectedFile.name}</strong> (${fileSizeMB} MB)`;
+                fileInfo.style.display = 'block';
+                document.getElementById('reset-btn').style.display = 'inline-block';
+                
+                // Reset output dan pesan jika ada
+                document.getElementById('output-container').style.display = 'none';
+                document.getElementById('warning-message').style.display = 'none';
+                document.getElementById('text-size-info').style.display = 'none';
+                
+                // Peringatan file besar
+                if (selectedFile.size > 5 * 1024 * 1024) { // 5MB
+                    document.getElementById('warning-message').innerHTML = 
+                        `<strong>Peringatan:</strong> File yang Anda upload cukup besar (${fileSizeMB} MB). ` +
+                        `Jika terjadi error, coba gunakan file yang lebih kecil atau prompt yang lebih sederhana.`;
+                    document.getElementById('warning-message').style.display = 'block';
+                }
+            } else {
+                resetFileSelection();
+            }
+        });
+        
+        // Reset Button Handler
+        document.getElementById('reset-btn').addEventListener('click', resetFileSelection);
+        
+        function resetFileSelection() {
+            document.getElementById('epub-file').value = '';
+            document.getElementById('file-info').style.display = 'none';
+            document.getElementById('reset-btn').style.display = 'none';
+            document.getElementById('warning-message').style.display = 'none';
+            document.getElementById('text-size-info').style.display = 'none';
+            selectedFile = null;
+        }
+        
+        // Process Button Handler
+        document.getElementById('process-btn').addEventListener('click', () => {
+            const promptText = document.getElementById('prompt-input').value.trim();
+            
+            if (!selectedFile) {
+                alert('Pilih file EPUB terlebih dahulu.');
+                return;
+            }
+            
+            if (!promptText) {
+                alert('Masukkan prompt terlebih dahulu.');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('prompt', promptText);
+            
+            // Show loading indicator
+            document.getElementById('loading-indicator').style.display = 'block';
+            document.getElementById('progress-container').style.display = 'block';
+            document.getElementById('output-container').style.display = 'none';
+            
+            // Simulasi progress bar untuk UX
+            let progress = 0;
+            const progressBar = document.getElementById('progress-bar');
+            const progressInterval = setInterval(() => {
+                if (progress < 90) {
+                    progress += Math.random() * 5;
+                    progressBar.style.width = progress + '%';
+                    progressBar.textContent = Math.round(progress) + '%';
+                }
+            }, 500);
+            
+            // Send request to server
+            fetch('/process', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Selesaikan progress bar
+                clearInterval(progressInterval);
+                progressBar.style.width = '100%';
+                progressBar.textContent = '100%';
+                
+                setTimeout(() => {
+                    // Hide loading indicator
+                    document.getElementById('loading-indicator').style.display = 'none';
+                    document.getElementById('progress-container').style.display = 'none';
+                    
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+                    
+                    // Tampilkan info ukuran teks jika ada
+                    if (data.textSize) {
+                        document.getElementById('text-size-info').textContent = 
+                            `Ukuran teks yang diekstrak: ${data.textSize}`;
+                        document.getElementById('text-size-info').style.display = 'block';
+                    }
+                    
+                    // Convert markdown to HTML dan tampilkan output
+                    const converter = new showdown.Converter({
+                        tables: true,
+                        simplifiedAutoLink: true,
+                        strikethrough: true,
+                        tasklists: true
+                    });
+                    
+                    // Konversi markdown ke HTML
+                    const htmlOutput = converter.makeHtml(data.output);
+                    
+                    // Tampilkan output sebagai HTML (bukan textContent)
+                    document.getElementById('output-content').innerHTML = htmlOutput;
+                    document.getElementById('output-container').style.display = 'block';
+                }, 500);
+            })
+            .catch(error => {
+                clearInterval(progressInterval);
+                document.getElementById('loading-indicator').style.display = 'none';
+                document.getElementById('progress-container').style.display = 'none';
+                alert('Terjadi kesalahan saat memproses file: ' + error);
+            });
+        });
+    </script>
+</body>
+</html>
