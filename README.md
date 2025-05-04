@@ -16,24 +16,41 @@ Sebuah aplikasi web sederhana berbasis Flask yang memungkinkan pengguna untuk me
 
 ---
 
-## 🗂️ Struktur Folder
-arab_epub_to_text_web/
-├── app.py # Web server utama (Flask)
-├── epub_to_text.py # Ekstraksi teks dari file EPUB
-├── prompt_runner.py # Integrasi prompt dan panggilan API Gemini
-├── requirements.txt # Daftar dependensi Python
-├── templates/
-│ └── index.html # Antarmuka web (HTML, CSS, JS)
-└── uploads/ # Folder sementara untuk menyimpan file EPUB yang diunggah
-
----
-
 ## 🛠️ Cara Menjalankan Proyek
 
 ### 1. Clone Repository
-
 ```bash
 git clone https://github.com/username/arab-epub-to-text-llm.git
 cd arab-epub-to-text-llm
+```
 
+### 2. Install Dependensi
+```bash
+pip install -r requirements.txt
+```
 
+### 3. Tambahkan API Key Gemini
+Buka prompt_runner.py dan ubah bagian berikut:
+```bash
+genai.configure(api_key="YOUR_API_KEY")
+```
+Ganti YOUR_API_KEY dengan API key Gemini kamu yang aktif. Daftar di: https://aistudio.google.com/app/apikey
+
+### 4. Jalankan Server
+```bash
+python app.py
+```
+Buka browser ke http://localhost:5000 dan mulai gunakan aplikasinya
+
+## 🧩 Teknologi yang Digunakan
+
+- Python 3
+- Flask – Web framework
+- BeautifulSoup + EbookLib – Parsing EPUB dan ekstraksi HTML.
+- Google Generative AI (Gemini API) – Pemrosesan bahasa alami.
+- JavaScript + Showdown.js – Konversi Markdown ke HTML
+
+## ⚠️ Catatan Penting
+
+- Aplikasi ini tidak menyimpan file atau data pengguna. Semua file dihapus setelah diproses.
+- Pastikan ukuran file EPUB tidak terlalu besar (idealnya < 5MB) untuk menghindari error token limit pada API Gemini.
