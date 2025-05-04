@@ -9,7 +9,7 @@ def generate_response(prompt, input_text):
     # Batasi panjang input teks untuk menghindari melebihi batas token
     # Gemini memiliki batas sekitar 1 juta token, tetapi kita buat lebih kecil untuk aman
     # Perkiraan kasar: 1 token ≈ 4 karakter
-    MAX_TEXT_LENGTH = 800000  # Sekitar 200k token, sudah termasuk prompt
+    MAX_TEXT_LENGTH = 3500000  # Sekitar 200k token, sudah termasuk prompt
     
     # Potong teks jika terlalu panjang
     if len(input_text) > MAX_TEXT_LENGTH:
