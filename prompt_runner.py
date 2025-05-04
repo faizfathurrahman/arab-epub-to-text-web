@@ -1,7 +1,7 @@
 import google.generativeai as genai
 
 # Set API Key Gemini
-genai.configure(api_key="AIzaSyCeZX2kkajQbo1fnfS7dNKonOVcl2_OGwg")  # Ganti API_KEY_ANDA dengan API Key Gemini kamu
+genai.configure(api_key="API_KEY_ANDA")  # Ganti API_KEY_ANDA dengan API Key Gemini kamu
 
 def generate_response(prompt, input_text):
     model = genai.GenerativeModel('gemini-2.0-flash')  # GANTI ke model valid
