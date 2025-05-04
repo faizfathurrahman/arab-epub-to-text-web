@@ -25,3 +25,15 @@ arab_epub_to_text_web/
 ├── templates/
 │ └── index.html # Antarmuka web (HTML, CSS, JS)
 └── uploads/ # Folder sementara untuk menyimpan file EPUB yang diunggah
+
+---
+
+## 🛠️ Cara Menjalankan Proyek
+
+### 1. Clone Repository
+
+```bash
+git clone https://github.com/username/arab-epub-to-text-llm.git
+cd arab-epub-to-text-llm
+
+
